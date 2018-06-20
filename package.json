@@ -1,0 +1,29 @@
+{
+  "name": "gelo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bitterulf/gelo.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/bitterulf/gelo/issues"
+  },
+  "homepage": "https://github.com/bitterulf/gelo#readme",
+  "dependencies": {
+    "boom": "^7.2.0",
+    "hapi": "^16.6.0",
+    "hapi-swagger": "^7.7.0",
+    "inert": "^4.2.1",
+    "joi": "^13.4.0",
+    "nedb": "^1.8.0",
+    "vision": "^4.1.1",
+    "zeromq": "^4.6.0"
+  }
+}

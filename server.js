@@ -6,7 +6,7 @@ const server = new Hapi.Server({
     connections: {
         routes: {
             files: {
-                relativeTo: Path.resolve(__dirname, '../../')
+                relativeTo: Path.resolve(__dirname, './public/')
             }
         }
     }
@@ -33,7 +33,9 @@ server.register(
         require('./routes/account.js'),
         require('./routes/world.js'),
         require('./routes/values.js'),
+        require('./routes/public.js')
     ], (err) => {
+        console.log(err);
 
         if (err) {
             throw err;

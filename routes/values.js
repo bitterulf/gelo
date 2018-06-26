@@ -7,7 +7,7 @@ const valuesRoutes = {
             values: Joi.array().items(
                 Joi.object().keys({
                     key: Joi.string().required(),
-                    value: Joi.string().required()
+                    value: Joi.object().required()
                 })
             ).required()
         });
@@ -30,12 +30,12 @@ const valuesRoutes = {
 
         const valuePayload = Joi.object().keys({
             key: Joi.string().required(),
-            value: Joi.string().required()
+            value: Joi.object().required()
         });
 
         const valueResponse = Joi.object().keys({
             key: Joi.string().required(),
-            value: Joi.string().required()
+            value: Joi.object().required()
         });
 
         server.route({
@@ -132,7 +132,7 @@ const valuesRoutes = {
                         secret: Joi.string().required()
                     }),
                     payload: {
-                        value: Joi.string().min(3).required(),
+                        value: Joi.object().required(),
                     }
                 },
                 response: {

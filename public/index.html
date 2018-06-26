@@ -1,0 +1,35 @@
+<html>
+    <head>
+        <title>
+            frontend
+        </title>
+    </head>
+    <body>
+        <script src="//unpkg.com/mithril/mithril.js"></script>
+        <script>
+            const App = {
+                view: function() {
+                    return m('div', [
+                        m('h1', {}, 'App'),
+                    ]);
+                }
+            }
+
+            m.request({
+                method: 'PUT',
+                url: '/account',
+                data: {
+                    secret: 'string' + Math.random(),
+                    username: 'string' + Math.random()
+                }
+            })
+            .then(function(result) {
+                console.log(result)
+
+                m.route(document.body, '/', {
+                    '/': App
+                })
+            })
+        </script>
+    </body>
+</html>

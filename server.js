@@ -1,6 +1,7 @@
 const Path = require('path');
 const Hapi = require('hapi');
 const HapiSwagger = require('hapi-swagger');
+const Primus = require('primus');
 
 const server = new Hapi.Server({
     connections: {
@@ -15,6 +16,8 @@ const server = new Hapi.Server({
 server.connection({
     port: 8080
 });
+
+const primus = new Primus(server.listener, {/* options */});
 
 server.register(
     [
@@ -40,6 +43,46 @@ server.register(
         if (err) {
             throw err;
         }
+
+        primus.authorize(function (req, done) {
+            const db = server.db.account;
+
+            db.findOne({secret: req.query.secret}, function (err, doc) {
+                if (!doc || err) {
+                    return done(new Error('invalid token'));
+                }
+
+                return done();
+            });
+        });
+
+        primus.on('connection', function (spark) {
+            const db = server.db.account;
+            db.findOne({secret: spark.query.secret}, function (err, doc) {
+                if (!doc || err) {
+                    console.log('could not attach account to connection');
+                }
+                else {
+                    spark.username = doc.username;
+                    spark.on('data', function(message) {
+                        if (message.action === 'world' && message.world) {
+                            spark.world = message.world
+                        }
+                        else if (message.world && message.action && message.key) {
+                            primus.forEach(function(spark) {
+                                if (spark.world === message.world) {
+                                    spark.write({
+                                        world: message.world,
+                                        action: message.action,
+                                        key: message.key
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+        });
 
         server.start((err) => {
 

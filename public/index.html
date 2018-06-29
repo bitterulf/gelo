@@ -3,170 +3,152 @@
         <title>
             frontend
         </title>
+        <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
     </head>
     <body>
         <script src="//unpkg.com/mithril/mithril.js"></script>
         <script src="/primus/primus.js"></script>
+        <script src="./API.js"></script>
         <script>
-            const createWorld = function(worldName, cb) {
-                m.request({
-                    method: 'PUT',
-                    url: '/world',
-                    data: {
-                        name: worldName
-                    },
-                    headers: {
-                        secret: window.localStorage.getItem('secret')
-                    }
-                })
-                .then(function(result) {
-                    cb();
-                })
-                .catch(function() {
-                    cb();
-                })
-            };
-
-            const updateSecret = function(cb) {
-                const secret = window.localStorage.getItem('secret');
-
-                m.request({
-                    method: 'GET',
-                    url: '/account',
-                    headers: {
-                        secret: secret
-                    }
-                })
-                .then(function(result) {
-                    cb();
-                })
-                .catch(function() {
-                    const newSecret = 'S' + Math.random();
-
-                    m.request({
-                        method: 'PUT',
-                        url: '/account',
-                        data: {
-                            secret: newSecret,
-                            username: 'string' + Math.random()
-                        }
-                    })
-                    .then(function(result) {
-                        window.localStorage.setItem('secret', newSecret);
-                        cb();
-                    });
-                })
-            };
+            const API = getAPI('gameA');
 
             const increaseScore = function() {
                 const score = state.score && state.score.amount ? state.score.amount : 0;
-                setKey('score', { amount: score + 1 })
+                API.setKey('score', { amount: score + 1 })
             }
+
+            const Market= {
+                view: function(vnode) {
+                    const items = [
+                        {
+                            name: 'food',
+                            type: 'food',
+                            price: 10
+                        }
+                    ];
+
+                    return m('div', items
+                        .filter(function(item) {
+                            return item.price <= vnode.attrs.money;
+                        })
+                        .map(function(item) {
+                            return m('div', { onclick: function() {
+                                const player = vnode.attrs;
+                                player.money -= item.price;
+                                API.setKey('players_'+player.username, player);
+                            } }, item.name);
+                        })
+                    );
+                }
+            };
+
+            const World = {
+                oncreate: function(vnode) {
+                    vnode.dom.innerHTML = `
+                        <a-scene>
+                            <a-sphere position="0 0 0" radius="0.05" color="#EF2D5E"></a-sphere>
+                            <a-text color="black" align="center" position="0 0.3 0" value="${vnode.attrs.text}\n" ></a-text>
+                            <a-sky color="#ECECEC"></a-sky>
+                        </a-scene>
+                    `;
+                },
+                onupdate: function(vnode) {
+                    const text = document.querySelector('a-text');
+                    text.setAttribute('value', vnode.attrs.text);
+                },
+                view: function(vnode) {
+                    return m('div');
+                }
+            };
 
             const App = {
                 view: function() {
-                    const secret = window.localStorage.getItem('secret');
+                    const lastMessages = messages;
 
-                    const score = state.score && state.score.amount ? state.score.amount : 0;
+                    if (!accountState.username) {
+                        return m('div', 'loading');
+                    }
+
+                    if (!state.players || !state.players[accountState.username]) {
+                        return m('div', {
+                            onclick: function() {
+                                API.setKey('players_'+accountState.username, {
+                                    username: accountState.username,
+                                    money: 100
+                                });
+                            }
+                        }, 'start');
+                    }
+
+                    const player = state.players[accountState.username];
 
                     return m('div', [
-                        m('h1', {}, 'App ' + secret),
-                        m('div', score),
-                        m('div', {
-                            onclick: function() {
-                                increaseScore();
-                            }
-                        }, '+'),
-                        m('div', [
-                            m('div', { onclick: function() {
-                                setWorld('w1');
-                                location.reload();
-                            } }, 'w1'),
-                            m('div', { onclick: function() {
-                                setWorld('w2');
-                                location.reload();
-                            } }, 'w2')
+                        m(World, { text: player.money }),
+                        m('div', { style: 'position: absolute; left: 0px; top: 0px;' }, [
+                            m('h1', {}, 'App ' + player.username),
+                            m('div', player.money),
+                            m(Market, player),
+                            m('div', {
+                                onclick: function() {
+                                    increaseScore();
+                                }
+                            }, '+'),
+                            m('div', [
+                                m('div', { onclick: function() {
+                                    API.setWorld('w1');
+                                    location.reload();
+                                } }, 'w1'),
+                                m('div', { onclick: function() {
+                                    API.setWorld('w2');
+                                    location.reload();
+                                } }, 'w2')
+                            ]),
+                            m('div', lastMessages.map(function(message) {
+                                return m('div', message);
+                            }))
                         ])
                     ]);
                 }
             }
 
-            const setWorld = function(world) {
-                window.localStorage.setItem('world', world);
-            }
-            const getWorld = function() {
-                return window.localStorage.getItem('world');
-            }
-
-            const setKey = function(key, value) {
-                const secret = window.localStorage.getItem('secret');
-                const world = getWorld();
-
-                m.request({
-                    method: 'PUT',
-                    url: '/world/:world/value/:key',
-                    headers: {
-                        secret: secret
-                    },
-                    data: {
-                        world: world,
-                        key: key,
-                        value: value
-                    }
-                })
-                .then(function(result) {
-                    window.primus.write({action: 'update', world: world, key: key});
-                });
-            }
-
             let state = {};
+            let accountState = {};
+            let messages = [];
 
-            const reloadData = function() {
-                const secret = window.localStorage.getItem('secret');
-                const world = getWorld();
+            API.updateSecret(function(username) {
+                accountState.username = username;
+                const world = API.getWorld() || 'w1';
+                API.setWorld(world);
 
-                m.request({
-                    method: 'GET',
-                    url: '/world/:world/values',
-                    headers: {
-                        secret: secret
-                    },
-                    data: {
-                        world: world
-                    }
-                })
-                .then(function(result) {
-                    const newState = {};
-                    result.values.forEach(function(entry) {
-                        newState[entry.key] = entry.value;
-                    });
-                    state = newState;
-                    m.redraw();
-                });
-            }
-
-            updateSecret(function() {
-                const world = getWorld() || 'w1';
-                setWorld(world);
-
-                createWorld(world, function() {
-                    window.primus = Primus.connect('/primus?secret='+window.localStorage.getItem('secret'));
-                    window.primus.on('data', function(message) {
+                API.createWorld(world, function() {
+                    API.on('data', function(message) {
                         if (message.action === 'update' || message.action === 'delete') {
-                            console.log('need to update');
-                            reloadData();
+                            API.loadData(function(newState) {
+                                state = newState;
+                                m.redraw();
+                            });
+                        }
+                        else if (message.action === 'message') {
+                            messages.push(message.message);
+                            m.redraw();
                         }
                     });
 
-                    window.primus.write({action: 'world', world: world});
+                    API.sendWorld();
+                    API.message(accountState.username + ' is online');
 
-                    m.route(document.body, '/', {
+                    m.route(document.getElementById('root'), '/', {
                         '/': App
                     })
 
-                    reloadData();
+                    API.loadData(function(newState) {
+                        state = newState;
+                        m.redraw();
+                    });
                 });
             });
         </script>
+        <div id='root'>
+        </div>
     </body>
 </html>

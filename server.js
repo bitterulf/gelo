@@ -79,6 +79,17 @@ server.register(
                                 }
                             });
                         }
+                        else if (message.world && message.action === 'message' && message.message) {
+                            primus.forEach(function(spark) {
+                                if (spark.world === message.world) {
+                                    spark.write({
+                                        world: message.world,
+                                        action: message.action,
+                                        message: message.message
+                                    });
+                                }
+                            });
+                        }
                     });
                 }
             });

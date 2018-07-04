@@ -3,7 +3,7 @@
         <title>
             frontend
         </title>
-        <script src="https://aframe.io/releases/0.8.2/aframe.min.js"></script>
+        <script src="https://aframe.io/releases/0.8.2/aframe.js"></script>
     </head>
     <body>
         <script src="//unpkg.com/mithril/mithril.js"></script>
@@ -43,18 +43,25 @@
             };
 
             const World = {
+                update: function(vnode) {
+                    const sceneEl = document.querySelector('#world').children[0];
+                    const entityElements = sceneEl.querySelectorAll('a-text');
+
+                    [].forEach.call(entityElements, function(el) {
+                        el.parentNode.removeChild(el);
+                    });
+
+                    const text = document.createElement('a-text');
+                    text.setAttribute('value', vnode.attrs.text);
+                    text.setAttribute('color', 'black');
+                    text.setAttribute('position', '0 0.3 0');
+                    sceneEl.appendChild(text);
+                },
                 oncreate: function(vnode) {
-                    vnode.dom.innerHTML = `
-                        <a-scene>
-                            <a-sphere position="0 0 0" radius="0.05" color="#EF2D5E"></a-sphere>
-                            <a-text color="black" align="center" position="0 0.3 0" value="${vnode.attrs.text}\n" ></a-text>
-                            <a-sky color="#ECECEC"></a-sky>
-                        </a-scene>
-                    `;
+                    vnode.tag.update(vnode);
                 },
                 onupdate: function(vnode) {
-                    const text = document.querySelector('a-text');
-                    text.setAttribute('value', vnode.attrs.text);
+                    vnode.tag.update(vnode);
                 },
                 view: function(vnode) {
                     return m('div');
@@ -70,7 +77,7 @@
                     }
 
                     if (!state.players || !state.players[accountState.username]) {
-                        return m('div', {
+                        return m('div', { style: 'position: absolute; left: 0px; top: 0px; background: red;',
                             onclick: function() {
                                 API.setKey('players_'+accountState.username, {
                                     username: accountState.username,
@@ -84,7 +91,7 @@
 
                     return m('div', [
                         m(World, { text: player.money }),
-                        m('div', { style: 'position: absolute; left: 0px; top: 0px;' }, [
+                        m('div', { style: 'position: absolute; left: 0px; top: 0px; background: red;' }, [
                             m('h1', {}, 'App ' + player.username),
                             m('div', player.money),
                             m(Market, player),
@@ -148,7 +155,11 @@
                 });
             });
         </script>
-        <div id='root'>
+        <div id='world'>
+            <a-scene>
+
+            </a-scene>
         </div>
+        <div id='root'></div>
     </body>
 </html>

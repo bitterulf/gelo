@@ -45,17 +45,38 @@
             const World = {
                 update: function(vnode) {
                     const sceneEl = document.querySelector('#world').children[0];
-                    const entityElements = sceneEl.querySelectorAll('a-text');
+                    const entityElements = sceneEl.querySelectorAll('a-entity');
 
                     [].forEach.call(entityElements, function(el) {
-                        el.parentNode.removeChild(el);
+                        if (el.getAttribute('geometry')) {
+                            el.parentNode.removeChild(el);
+                        }
                     });
 
-                    const text = document.createElement('a-text');
-                    text.setAttribute('value', vnode.attrs.text);
-                    text.setAttribute('color', 'black');
-                    text.setAttribute('position', '0 0.3 0');
+                    const text = document.createElement('a-entity');
+
+                    text.setAttribute('text', {
+                        value: vnode.attrs.text,
+                        color: 'black',
+                        letterSpacing: 10
+                    });
+
+                    text.setAttribute('position', '0 1.5 0');
+
                     sceneEl.appendChild(text);
+
+                    const image = document.createElement('a-entity');
+                    image.setAttribute('geometry', { primitive: 'plane' });
+                    image.setAttribute('material', {
+                        color: '#FF00FF',
+                        shader: 'flat',
+                        side: 'double',
+                        transparent: true,
+                        src: 'cat.png'
+                    });
+                    image.setAttribute('position', '0 1.5 0');
+
+                    sceneEl.appendChild(image);
                 },
                 oncreate: function(vnode) {
                     vnode.tag.update(vnode);

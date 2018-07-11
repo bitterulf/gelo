@@ -1,0 +1,18 @@
+<html>
+    <head>
+        <title>
+            frontend
+        </title>
+        <script src="https://aframe.io/releases/0.8.2/aframe.js"></script>
+    </head>
+    <body>
+        <a-scene>
+            <a-assets>
+                <img id="tex1" src="tex1.png">
+            </a-assets>
+            <a-plane position="-1 0.5 -3" segments-height="32" segments-width="32" rotation="-90 0 0" height="1" width="1" material="src: #tex1; displacementMap: #tex1; displacementBias: 0.5; displacementScale: 0.5;"></a-box>
+            <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+            <a-sky color="#ECECEC"></a-sky>
+        </a-scene>
+    </body>
+</html>

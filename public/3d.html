@@ -10,9 +10,46 @@
             <a-assets>
                 <img id="tex1" src="tex1.png">
             </a-assets>
-            <a-plane position="-1 0.5 -3" segments-height="32" segments-width="32" rotation="-90 0 0" height="1" width="1" material="src: #tex1; displacementMap: #tex1; displacementBias: 0.5; displacementScale: 0.5;"></a-box>
+            <a-plane id="ground" position="-1 0.5 -3" segments-height="24" segments-width="24" rotation="-90 0 0" height="1" width="1"></a-box>
             <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
             <a-sky color="#ECECEC"></a-sky>
         </a-scene>
+        <script>
+            const canvas = document.createElement('canvas');
+
+            canvas.width = 64;
+            canvas.height = 64;
+
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "rgba(0, 0, 0, 1)";
+            ctx.fillRect(0, 0, 64, 64);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+            for (var x = 0; x < 32; x++) {
+                ctx.fillRect(x, 0, 32, 32);
+            }
+
+            ctx.fillStyle = "rgba(0, 0, 0, 0.1)";
+            const stone = new Image();
+            stone.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gcMDgAVCO26YAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAIXSURBVDjLXZPdTttAFIS/dTaOyWKHJPykzgVQqW8Q7nlbnoMXQIILJISEQGndJKVpaAle/+y6N8dqVEtHu/JqZ+fMmVGAluoASgrA8+/zQCD7BqgAB3gNGCACev8BOVlbICeVyz+HXDgBBlL78lJ7UQG17LfAb+BVGFSA0sApMAVOlFL7URT1oyhSURQpoNlsNmWe5+/ALyDbYVEAZQvwRSl1Gsfx8fn5uTk7O4smk4kuioK7u7u3+/v7lbU2k3Zr4AOwrQbHQBqG4ec0TT9dXl4OLi4udJIkKs9zNRqN8uVyeZRlWdw0jQLehM0H0GjpudfpdPam06mZzWb92WwWGGPI8xxrbff6+prFYlE753JgDWx2AdbAxnu/CcPwOEmSJo5jjDGq2+2Spinj8bivtT5wzh0AR8ChiLnVwAL4Xpbl4dPT0+D29jYaDocmSZLAe898PqeqKh0EQQ/oS8WydlqAkfe+//Lyoq+urtzNzc3EGBOFYRiuViv18PCgqqpyYqLWWE0r4ivwDTDW2ubx8XH9/PycBUEQa61j59yetTaq67oE3sUPVkbptIixElO91XWd1XW9D7T9JkLZAz+BpYi4bX1QyGgaYdMTaw+lxgKmgT/AXAz1GyiUHIaSAWSsWkQaCcAJ0BXaXwVgDWyVuKsNT7MD0pGzgYwtBkph+UMYVFpC4XdS1whgsBOaQoLmpY2tgNV/AYLj5dEZeG8+AAAAAElFTkSuQmCC";
+
+            stone.onload = function()
+            {
+
+
+                ctx.drawImage(stone, 0, 0);
+
+                ctx.drawImage(stone, 32, 32);
+
+                document.querySelector('#ground').setAttribute('material', {
+                    displacementMap: canvas.toDataURL(),
+                    src: canvas.toDataURL(),
+                    displacementBias: 0,
+                    displacementScale: 0.1
+                });
+            };
+
+
+
+        </script>
     </body>
 </html>
